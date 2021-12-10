@@ -1,0 +1,125 @@
+@model List<FwB.Models.Order>
+
+<h2>Order</h2>
+
+
+
+@if (Model.Count > 0)
+{
+    decimal total = 0;
+    decimal totalsale = 0;
+    decimal totalFinalPrice = 0;
+    decimal DiscountPrice = 10;
+
+
+    int stt = 1;
+
+    <table class="table">
+        <tr>
+            <th>#</th>
+            <th>Sản phẩm</th>
+            <th>Giá</th>
+            <th>Số lượng</th>
+            <th>Thành tiền</th>
+            <th></th>
+        </tr>
+        @foreach (var cartitem in Model)
+        {
+
+
+
+            var thanhtienkm = ((((decimal)cartitem.Quantity * (decimal)cartitem.Items.Price) * DiscountPrice) / 100);
+            var thanhtien = cartitem.Quantity * cartitem.Items.Price;
+            var tienthanhtoan = (decimal)thanhtien - thanhtienkm;
+            total += (decimal)thanhtien;
+            totalsale += (decimal)thanhtienkm;
+            totalFinalPrice += (decimal)tienthanhtoan;
+
+            <tr>
+                <td>@(stt++)</td>
+                <td>@cartitem.Items.ItemName</td>
+                <td>@(cartitem.Items.Price) VND</td>
+                <input type="hidden" value="@cartitem.Items.ItemId" id="HiddenItemId" />
+                <td><input onkeyup="return false" min="1" class="QuantityId" asp-for="@cartitem.Quantity"
+                id="@($"Quantity-{cartitem.Items.ItemId}")" /></td>
+
+                <td>@(thanhtien)</td>
+                <td>
+                    <button class="btn btn-success updatecartitem" data-itemid="@cartitem.Items.ItemId">
+                        Cập nhật</button>
+                    <a asp-route="removecart" asp-route-itemid="@cartitem.Items.ItemId" class="btn btn-danger">Xóa</a>
+                </td>
+            </tr>
+        }
+        <tr>
+            <td colspan="4" class="text-right">Tạm Tính</td>
+            <td>@(total.ToString("n0"))</td>
+            <td colspan="4" class="text-right">Khuyết Mãi</td>
+            <td>@(totalsale.ToString("n0"))</td>
+            <td colspan="4" class="text-right">CTKM</td>
+
+            <select class="form-control discountPrice" id="dcPrice" value="DiscountId"
+            asp-items="ViewBag.Discount"></select>
+            <td colspan="4" class="text-right">Tổng Tiền Thanh Toán</td>
+            <td>@(totalFinalPrice.ToString("n0"))</td>
+        </tr>
+    </table>
+
+    <a asp-controller="Item" asp-action="Checkout" class="btn btn-success">Gửi đơn hàng</a>
+
+    @section Scripts {
+<script>
+    $(document).ready(function () {
+        $(".updatecartitem").click(function (event) {
+            event.preventDefault();
+            var itemid = $(this).attr("data-itemid");
+            var quantity = $("#Quantity-" + itemid).val();
+            var discountId = document.getElementById("dcPrice").value;
+            console.log(discountId);
+            $.ajax({
+                type: "POST",
+                url: "@Url.RouteUrl("updatecart")",
+                data: {
+                    discountId: discountId,
+                    itemid: itemid,
+                    quantity: quantity
+                },
+                success: function (result) {
+                    window.location.href = "@Url.RouteUrl("cart")";
+                }
+            });
+        }
+
+        );
+
+    });
+
+
+
+
+
+    @* function updateItem(id) {
+            var itemid = document.getElementById("HiddenItemId").value;
+            var quantity = $("#Quantity-" + itemid).val();
+            console.log(quantity);
+            $.ajax({
+            url: "@Url.RouteUrl("updatecart")",
+            type: 'POST',
+            data: {
+            itemid: itemid,
+            quantity: quantity
+            },
+            success: function (res) {
+            location.reload();
+            }
+            })
+            } *@
+
+</script>
+}
+
+}
+else
+{
+    <p class="alert alert-danger">Giỏ hàng trống</p>
+}

@@ -1,0 +1,68 @@
+@model IEnumerable<FwB.Models.Item>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ItemName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Price)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.MenuId)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ItemName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Price)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.MenuId)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.ItemId">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.ItemId">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.ItemId">Delete</a>
+                </td>
+            </tr>
+
+
+
+        }
+        <div class="card-columns">
+            @foreach (var item in Model)
+            {
+                <div class=card>
+                    <h3 class="card-header">@item.ItemName</h3>
+                    <div class="card-body" style="height: 150px;">
+                        @item.Description
+                    </div>
+                    <div class="card-footer">
+                        <span class="text-muted">@item.Price VND</span>
+                        <a asp-route="addcart" asp-route-itemid="@item.ItemId"
+                        class="btn btn-primary btn-sm float-right">Đặt hàng</a>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </tbody>
+</table>
