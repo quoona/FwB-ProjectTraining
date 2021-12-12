@@ -1,0 +1,17 @@
+@using FwB.Item.Controllers
+@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@inject IHttpContextAccessor HttpContextAccessor
+@using FwB.Controllers;
+@using FwB.Models;
+
+@{
+    var session = HttpContextAccessor.HttpContext.Session;
+    string jsoncart = session.GetString(ItemController.CARTKEY);
+    if (jsoncart != null)
+    {
+        var cart = JsonConvert.DeserializeObject<List<Item>>(jsoncart);
+        <li class="nav-item"> <a asp-route="cart">Order(@cart.Count)</a></li>
+
+    }
+}

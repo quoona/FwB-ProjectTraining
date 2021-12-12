@@ -2,33 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using FwB.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using DiscountModel = FwB.Models.Discount;
-using ItemModel = FwB.Models.Item;
+using FwB.Models;
+using ListOrderModel = FwB.Models.ListOrder;
 
-namespace FwB.Discount.Controllers
+namespace FwB.ListOrder.Controllers
 {
-    public class DiscountController : Controller
+    public class ListOrderController : Controller
     {
         private readonly AppDbContext _context;
 
-        public DiscountController(AppDbContext context)
+        public ListOrderController(AppDbContext context)
         {
             _context = context;
         }
 
-        // GET: Discount
+        // GET: ListOrder
         public async Task<IActionResult> Index()
         {
-
-
-            return View(await _context.Discount.ToListAsync());
+            var listOrder = await _context.ListOrder.ToListAsync();
+            return View(listOrder);
         }
 
-        // GET: Discount/Details/5
+        // GET: ListOrder/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -36,39 +34,39 @@ namespace FwB.Discount.Controllers
                 return NotFound();
             }
 
-            var discount = await _context.Discount
-                .FirstOrDefaultAsync(m => m.DiscountId == id);
-            if (discount == null)
+            var listOrder = await _context.ListOrder
+                .FirstOrDefaultAsync(m => m.ListOrderId == id);
+            if (listOrder == null)
             {
                 return NotFound();
             }
 
-            return View(discount);
+            return View(listOrder);
         }
 
-        // GET: Discount/Create
+        // GET: ListOrder/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Discount/Create
+        // POST: ListOrder/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("DiscountId,DiscountName,Content,Status,Value")] DiscountModel discount)
+        public async Task<IActionResult> Create([Bind("ListOrderId")] ListOrderModel listOrder)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(discount);
+                _context.Add(listOrder);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(discount);
+            return View(listOrder);
         }
 
-        // GET: Discount/Edit/5
+        // GET: ListOrder/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -76,22 +74,22 @@ namespace FwB.Discount.Controllers
                 return NotFound();
             }
 
-            var discount = await _context.Discount.FindAsync(id);
-            if (discount == null)
+            var listOrder = await _context.ListOrder.FindAsync(id);
+            if (listOrder == null)
             {
                 return NotFound();
             }
-            return View(discount);
+            return View(listOrder);
         }
 
-        // POST: Discount/Edit/5
+        // POST: ListOrder/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("DiscountId,DiscountName,Content,Status,Value")] DiscountModel discount)
+        public async Task<IActionResult> Edit(int id, [Bind("ListOrderId")] ListOrderModel listOrder)
         {
-            if (id != discount.DiscountId)
+            if (id != listOrder.ListOrderId)
             {
                 return NotFound();
             }
@@ -100,12 +98,12 @@ namespace FwB.Discount.Controllers
             {
                 try
                 {
-                    _context.Update(discount);
+                    _context.Update(listOrder);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DiscountExists(discount.DiscountId))
+                    if (!ListOrderExists(listOrder.ListOrderId))
                     {
                         return NotFound();
                     }
@@ -116,10 +114,10 @@ namespace FwB.Discount.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(discount);
+            return View(listOrder);
         }
 
-        // GET: Discount/Delete/5
+        // GET: ListOrder/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -127,30 +125,30 @@ namespace FwB.Discount.Controllers
                 return NotFound();
             }
 
-            var discount = await _context.Discount
-                .FirstOrDefaultAsync(m => m.DiscountId == id);
-            if (discount == null)
+            var listOrder = await _context.ListOrder
+                .FirstOrDefaultAsync(m => m.ListOrderId == id);
+            if (listOrder == null)
             {
                 return NotFound();
             }
 
-            return View(discount);
+            return View(listOrder);
         }
 
-        // POST: Discount/Delete/5
+        // POST: ListOrder/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var discount = await _context.Discount.FindAsync(id);
-            _context.Discount.Remove(discount);
+            var listOrder = await _context.ListOrder.FindAsync(id);
+            _context.ListOrder.Remove(listOrder);
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DiscountExists(int id)
+        private bool ListOrderExists(int id)
         {
-            return _context.Discount.Any(e => e.DiscountId == id);
+            return _context.ListOrder.Any(e => e.ListOrderId == id);
         }
     }
 }

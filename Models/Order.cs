@@ -13,14 +13,17 @@ namespace FwB.Models
         [ForeignKey("FK_MENUID")]
         public List<Menu>? Menus { get; set; }
 
-
+        public int? OrderItemId { get; set; }
         [ForeignKey("FK_ITEMID")]
         public Item? Items { get; set; }
 
         [ForeignKey("FK_DISCOUNTID")]
-        public List<Discount>? Discounts { get; set; }
+        public Discount? Discounts { get; set; }
         [Display(Name = "Số Lượng")]
         public int Quantity { get; set; }
 
+        public int? IdToGetListOrder { get; set; }
+
+        public DateTime CreateDate { get; set; }
     }
 }

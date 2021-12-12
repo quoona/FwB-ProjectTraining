@@ -4,6 +4,7 @@ using FwB.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FwB.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211211143724_CreateDate")]
+    partial class CreateDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -75,7 +77,7 @@ namespace FwB.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("MenusMenuId")
+                    b.Property<int?>("MenuId")
                         .HasColumnType("int");
 
                     b.Property<double?>("Price")
@@ -85,12 +87,7 @@ namespace FwB.Migrations
                     b.Property<int?>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int?>("isFood")
-                        .HasColumnType("int");
-
                     b.HasKey("ItemId");
-
-                    b.HasIndex("MenusMenuId");
 
                     b.ToTable("Item");
                 });
@@ -176,9 +173,6 @@ namespace FwB.Migrations
                     b.Property<int?>("FK_ITEMID")
                         .HasColumnType("int");
 
-                    b.Property<int?>("IdToGetListOrder")
-                        .HasColumnType("int");
-
                     b.Property<int?>("OrderItemId")
                         .HasColumnType("int");
 
@@ -201,15 +195,6 @@ namespace FwB.Migrations
                         .HasForeignKey("ItemsItemId");
 
                     b.Navigation("Items");
-                });
-
-            modelBuilder.Entity("FwB.Models.Item", b =>
-                {
-                    b.HasOne("FwB.Models.Menu", "Menus")
-                        .WithMany()
-                        .HasForeignKey("MenusMenuId");
-
-                    b.Navigation("Menus");
                 });
 
             modelBuilder.Entity("FwB.Models.ItemByIdOrder", b =>
@@ -238,6 +223,10 @@ namespace FwB.Migrations
 
             modelBuilder.Entity("FwB.Models.Menu", b =>
                 {
+                    b.HasOne("FwB.Models.Item", null)
+                        .WithMany("Menus")
+                        .HasForeignKey("FK_MENUID");
+
                     b.HasOne("FwB.Models.Order", null)
                         .WithMany("Menus")
                         .HasForeignKey("FK_MENUID");
@@ -256,6 +245,11 @@ namespace FwB.Migrations
                     b.Navigation("Discounts");
 
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("FwB.Models.Item", b =>
+                {
+                    b.Navigation("Menus");
                 });
 
             modelBuilder.Entity("FwB.Models.Order", b =>

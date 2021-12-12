@@ -2,70 +2,87 @@
 
 <h2>Order</h2>
 
-
-
 @if (Model.Count > 0)
 {
+
     decimal total = 0;
     decimal totalsale = 0;
     decimal totalFinalPrice = 0;
-    decimal DiscountPrice = 10;
-
-
     int stt = 1;
 
-    <table class="table">
-        <tr>
-            <th>#</th>
-            <th>Sản phẩm</th>
-            <th>Giá</th>
-            <th>Số lượng</th>
-            <th>Thành tiền</th>
-            <th></th>
-        </tr>
-        @foreach (var cartitem in Model)
-        {
-
-
-
-            var thanhtienkm = ((((decimal)cartitem.Quantity * (decimal)cartitem.Items.Price) * DiscountPrice) / 100);
-            var thanhtien = cartitem.Quantity * cartitem.Items.Price;
-            var tienthanhtoan = (decimal)thanhtien - thanhtienkm;
-            total += (decimal)thanhtien;
-            totalsale += (decimal)thanhtienkm;
-            totalFinalPrice += (decimal)tienthanhtoan;
-
+    <table class="table table-bordered table-hover" id="tblData">
+        <thead>
             <tr>
-                <td>@(stt++)</td>
-                <td>@cartitem.Items.ItemName</td>
-                <td>@(cartitem.Items.Price) VND</td>
-                <input type="hidden" value="@cartitem.Items.ItemId" id="HiddenItemId" />
-                <td><input onkeyup="return false" min="1" class="QuantityId" asp-for="@cartitem.Quantity"
-                id="@($"Quantity-{cartitem.Items.ItemId}")" /></td>
-
-                <td>@(thanhtien)</td>
-                <td>
-                    <button class="btn btn-success updatecartitem" data-itemid="@cartitem.Items.ItemId">
-                        Cập nhật</button>
-                    <a asp-route="removecart" asp-route-itemid="@cartitem.Items.ItemId" class="btn btn-danger">Xóa</a>
-                </td>
+                <th>No</th>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total Item Price</th>
+                <th></th>
+                <th></th>
             </tr>
-        }
-        <tr>
-            <td colspan="4" class="text-right">Tạm Tính</td>
-            <td>@(total.ToString("n0"))</td>
-            <td colspan="4" class="text-right">Khuyết Mãi</td>
-            <td>@(totalsale.ToString("n0"))</td>
-            <td colspan="4" class="text-right">CTKM</td>
+        </thead>
 
-            <select class="form-control discountPrice" id="dcPrice" value="DiscountId"
-            asp-items="ViewBag.Discount"></select>
-            <td colspan="4" class="text-right">Tổng Tiền Thanh Toán</td>
-            <td>@(totalFinalPrice.ToString("n0"))</td>
+        <tbody>
+
+            @foreach (var cartitem in Model)
+            {
+                var thanhtien = cartitem.Quantity * cartitem.Items.Price;
+                var thanhtienkm = ((thanhtien * cartitem.Items.DiscountPrice) / 100);
+                var tienthanhtoan = thanhtien - thanhtienkm;
+                total += (decimal)thanhtien;
+                totalsale += (decimal)thanhtienkm;
+                totalFinalPrice += (decimal)tienthanhtoan;
+                <tr>
+                    <td id="itemid-@Html.Raw(cartitem.Items.ItemId)">
+
+                        @(@cartitem.Items.ItemId)
+                    </td>
+                    <td>@cartitem.Items.ItemName</td>
+                    <td>@(cartitem.Items.Price) VND</td>
+                    <td>
+                        <input asp-for="@cartitem.Quantity Quantity" class="Quantity form-control"
+                    id="@($"Quantity-{cartitem.Items.ItemId}")" />
+                    </td>
+                    <td>@(thanhtien.ToString()) VND</td>
+                    <td>
+                        <button class=" btn btn-success updatecartitem" data-itemid="@cartitem.Items.ItemId">
+                            Cập nhật</button>
+                    </td>
+                    <td><a asp-route="removecart" asp-route-itemid="@cartitem.Items.ItemId" class="btn btn-danger">Xóa</a></td>
+                </tr>
+            }
+
+        </tbody>
+
+        <tr>
+            <td class="text-right">Tạm Tính: </td>
+            <td>@(total.ToString("n0")) VND</td>
+            <td class="text-right">Khuyết Mãi: </td>
+            <td>@(totalsale.ToString("n0")) VND</td>
+            <td class="text-right">Tổng Tiền Thanh Toán: </td>
+            <td>@(totalFinalPrice.ToString("n0")) VND</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="text-align: right">
+                <select id="dcPrice" value="DiscountId" asp-items="ViewBag.Discount" class="form-control">
+                    <option selected>Khuyến Mãi</option>
+                </select>
+            </td>
+            <td style="text-align: right">
+                <button type="submit" class="btn btn-primary updateOrderDiscount">Accept</button>
+            </td>
         </tr>
     </table>
 
-    <a asp-controller="Item" asp-action="Checkout" class="btn btn-success">Gửi đơn hàng</a>
+    <div style="display: flex; justify-content:space-between; width: 200px; height: 100px ">
+        <div><a asp-controller="Item" asp-action="CreateOrder" class="btn btn-success CreateOrder">Order</a></div>
+        <div><a asp-controller="Item" asp-action="Index" class="btn btn-info">Back To Item</a></div>
+    </div>
+
+
+
 
     @section Scripts {
 <script>
@@ -76,6 +93,7 @@
             var quantity = $("#Quantity-" + itemid).val();
             var discountId = document.getElementById("dcPrice").value;
             console.log(discountId);
+            debugger;
             $.ajax({
                 type: "POST",
                 url: "@Url.RouteUrl("updatecart")",
@@ -85,7 +103,8 @@
                     quantity: quantity
                 },
                 success: function (result) {
-                    window.location.href = "@Url.RouteUrl("cart")";
+                    @* window.location.href = "@Url.RouteUrl("cart")"; *@
+                        location.reload();
                 }
             });
         }
@@ -95,31 +114,39 @@
     });
 
 
+    $(document).ready(function () {
 
+        $(".updateOrderDiscount").click(function (event) {
+            event.preventDefault();
+            var discountId = document.getElementById("dcPrice").value;
+            console.log(discountId);
+            $(".Quantity").each(function () {
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.RouteUrl("updateorderall")",
+                    data: {
+                        discountId: discountId,
+                    },
+                    success: function (result) {
 
-
-    @* function updateItem(id) {
-            var itemid = document.getElementById("HiddenItemId").value;
-            var quantity = $("#Quantity-" + itemid).val();
-            console.log(quantity);
-            $.ajax({
-            url: "@Url.RouteUrl("updatecart")",
-            type: 'POST',
-            data: {
-            itemid: itemid,
-            quantity: quantity
-            },
-            success: function (res) {
-            location.reload();
-            }
+                        window.location.href = "@Url.RouteUrl("cart")";
+                    }
+                });
             })
-            } *@
+
+        });
+    });
+
+
 
 </script>
 }
 
+
 }
+
 else
 {
     <p class="alert alert-danger">Giỏ hàng trống</p>
+    <div><a asp-controller="Item" asp-action="Index" class="btn btn-info">Back To Item</a></div>
 }

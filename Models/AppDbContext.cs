@@ -21,6 +21,8 @@ namespace FwB.Models
         public DbSet<Order> Order { get; set; }
         public DbSet<Item> Item { get; set; }
 
+        public DbSet<ItemByIdOrder> ItemByIdOrders { get; set; }
+        public DbSet<ListOrder> ListOrder { get; set; }
 
 
     }

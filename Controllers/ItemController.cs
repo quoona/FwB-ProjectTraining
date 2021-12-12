@@ -16,19 +16,31 @@ namespace FwB.Item.Controllers
     public class ItemController : Controller
     {
         private readonly AppDbContext _context;
-        // Key lưu chuỗi json của Cart
         public const string CARTKEY = "cart";
         public ItemController(AppDbContext context)
         {
             _context = context;
         }
 
-
+        // GET: Item
         public async Task<IActionResult> Index()
         {
-
             return View(await _context.Item.ToListAsync());
         }
+        [Route("food/{id}", Name = "food")]
+        public IActionResult IsFoodAction(int id)
+        {
+            var isFood = _context.Item.Where(x => x.isFood == id).ToList();
+            System.Console.WriteLine(isFood);
+            if (isFood == null)
+            {
+                return NotFound("Không có sản phẩm");
+            }
+
+
+            return View(isFood);
+        }
+
 
 
         // Hiện thị giỏ hàng
@@ -36,16 +48,9 @@ namespace FwB.Item.Controllers
         public IActionResult Cart(DiscountModel discount)
         {
 
-            ViewBag.Discount = new SelectList(_context.Discount, "DiscountId", "DiscountName", "Content");
+            ViewBag.Discount = new SelectList(_context.Discount.Where(x => x.Status == 1).ToList(), "DiscountId", "DiscountName");
             return View(GetCartItems());
         }
-
-        // [Route("/cart", Name = "cart")]
-        // public IActionResult Cart()
-        // {
-        //     ViewBag.Discount = new SelectList(_context.Discount, "DiscountId", "DiscountName", "Content").Where()
-        //     return View(GetCartItems());
-        // }
 
         /// Thêm sản phẩm vào cart
         [Route("addcart/{itemid:int}", Name = "addcart")]
@@ -53,8 +58,8 @@ namespace FwB.Item.Controllers
         {
 
             var item = _context.Item
-        .Where(p => p.ItemId == itemid)
-        .FirstOrDefault();
+            .Where(p => p.ItemId == itemid)
+            .FirstOrDefault();
             if (item == null)
                 return NotFound("Không có sản phẩm");
 
@@ -99,18 +104,17 @@ namespace FwB.Item.Controllers
         /// Cập nhật
         [Route("/updatecart", Name = "updatecart")]
         [HttpPost]
-        public IActionResult UpdateCart([FromForm] int itemid, [FromForm] int quantity)
+        public IActionResult UpdateCart([FromForm] int itemid, [FromForm] int quantity, [FromForm] int discountId, ItemModel items, OrderModel order)
         {
             // Cập nhật Cart thay đổi số lượng quantity ...
             var cart = GetCartItems();
+
             var cartitem = cart.Find(p => p.Items.ItemId == itemid);
+
+
 
             if (cartitem != null)
             {
-
-
-
-                // Đã tồn tại, tăng thêm 1
                 cartitem.Quantity = quantity;
             }
             SaveCartSession(cart);
@@ -121,11 +125,108 @@ namespace FwB.Item.Controllers
         }
 
 
-        [Route("/checkout")]
-        public IActionResult CheckOut()
+
+        /// Cập nhật
+        [Route("/updateorderall", Name = "updateorderall")]
+        [HttpPost]
+        public IActionResult UpdateOrderAll([FromForm] int quantity, [FromForm] int discountId, OrderModel order)
         {
-            // Xử lý khi đặt hàng
-            return View();
+            // Cập nhật Cart thay đổi số lượng quantity ...
+            var cart = GetCartItems();
+            var orderitem = cart.Find(x => x.Items.Status == 1);
+
+            foreach (var item in cart)
+            {
+                if (orderitem != null)
+                {
+                    if (discountId == 1)
+                    {
+                        orderitem.Items.DiscountPrice = 10;
+                    }
+                    else
+                    if (discountId == 2)
+                    {
+                        orderitem.Items.DiscountPrice = 20;
+                    }
+                    else if (discountId == 3)
+                    {
+                        orderitem.Items.DiscountPrice = 5;
+
+                    }
+                    else if (discountId == 5)
+                    {
+                        orderitem.Items.DiscountPrice = 50;
+
+                    }
+
+                }
+            }
+
+
+
+            SaveCartSession(cart);
+            // Trả về mã thành công (không có nội dung gì - chỉ để Ajax gọi)
+            return Ok();
+
+
+        }
+
+
+        [Route("/createorder")]
+        public IActionResult CreateOrder(OrderModel orders)
+        {
+            var isExistId = 1;
+            var orderitem = GetCartItems();
+            var isExist = _context.Order.Where(x => x.IdToGetListOrder == isExistId).FirstOrDefault();
+
+            foreach (var orderItem in orderitem)
+            {
+
+                var addItem = new OrderModel
+                {
+                    IdToGetListOrder = isExistId,
+                    CreateDate = DateTime.Now,
+                    OrderItemId = orderItem.Items.ItemId,
+                    Quantity = orderItem.Quantity
+
+                };
+
+                _context.Add(addItem);
+
+
+
+            }
+
+            _context.SaveChanges();
+            ClearCart();
+            return RedirectToAction(nameof(Index));
+        }
+
+        // Lấy cart từ Session (danh sách CartItem)
+        List<OrderModel> GetCartItems()
+        {
+
+            var session = HttpContext.Session;
+            string jsoncart = session.GetString(CARTKEY);
+            if (jsoncart != null)
+            {
+                return JsonConvert.DeserializeObject<List<OrderModel>>(jsoncart);
+            }
+            return new List<OrderModel>();
+        }
+        // Xóa cart khỏi session
+        void ClearCart()
+        {
+            var session = HttpContext.Session;
+            session.Remove(CARTKEY);
+        }
+        // Xóa cart khỏi session
+        // Lưu Cart (Danh sách CartItem) vào session
+        void SaveCartSession(List<OrderModel> ls)
+        {
+            var session = HttpContext.Session;
+            string jsoncart = JsonConvert.SerializeObject(ls);
+            session.SetString(CARTKEY, jsoncart);
         }
 
         // GET: Item/Details/5
@@ -149,27 +250,24 @@ namespace FwB.Item.Controllers
         // GET: Item/Create
         public IActionResult Create()
         {
-            ViewBag.MenuId = new SelectList(_context.Menu, "MenuId", "MenuName");
             return View();
         }
 
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ItemId,ItemName,Price,Description, MenuId")] ItemModel item)
+        public async Task<IActionResult> Create([Bind("ItemId,ItemName,Description,Price,DiscountPrice,Status,isFood")] ItemModel item)
         {
             if (ModelState.IsValid)
             {
-                ViewBag.MenuId = new SelectList(_context.Menu, "MenuId", "MenuName", item.MenuId);
                 _context.Add(item);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-
             return View(item);
         }
 
-
+        // GET: Item/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -185,10 +283,12 @@ namespace FwB.Item.Controllers
             return View(item);
         }
 
-
+        // POST: Item/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ItemId,ItemName,Price,MenuId,Description")] ItemModel item)
+        public async Task<IActionResult> Edit(int id, [Bind("ItemId,ItemName,Description,Price,DiscountPrice,Status,isFood")] ItemModel item)
         {
             if (id != item.ItemId)
             {
@@ -218,7 +318,7 @@ namespace FwB.Item.Controllers
             return View(item);
         }
 
-
+        // GET: Item/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -236,7 +336,7 @@ namespace FwB.Item.Controllers
             return View(item);
         }
 
-
+        // POST: Item/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -250,33 +350,6 @@ namespace FwB.Item.Controllers
         private bool ItemExists(int id)
         {
             return _context.Item.Any(e => e.ItemId == id);
-        }
-
-        // Lấy cart từ Session (danh sách CartItem)
-        List<OrderModel> GetCartItems()
-        {
-
-            var session = HttpContext.Session;
-            string jsoncart = session.GetString(CARTKEY);
-            if (jsoncart != null)
-            {
-                return JsonConvert.DeserializeObject<List<OrderModel>>(jsoncart);
-            }
-            return new List<OrderModel>();
-        }
-        // Xóa cart khỏi session
-        void ClearCart()
-        {
-            var session = HttpContext.Session;
-            session.Remove(CARTKEY);
-        }
-        // Xóa cart khỏi session
-        // Lưu Cart (Danh sách CartItem) vào session
-        void SaveCartSession(List<OrderModel> ls)
-        {
-            var session = HttpContext.Session;
-            string jsoncart = JsonConvert.SerializeObject(ls);
-            session.SetString(CARTKEY, jsoncart);
         }
     }
 }

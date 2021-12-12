@@ -23,6 +23,8 @@ namespace FwB.Models
         public string? Content { get; set; }
 
         public int? Status { get; set; }
+        public Item? Items { get; set; }
+        public int? Value { get; set; }
 
 
     }

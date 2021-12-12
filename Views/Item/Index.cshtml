@@ -3,50 +3,22 @@
 @{
     ViewData["Title"] = "Index";
 }
+<div style="display: flex; justify-content: space-evenly;">
+    <h1>Menu Item</h1>
+    <h1>
+        <a style="cursor: pointer;" value="1" data-itemid="1" id="food" class="FoodItem">Food Item</a>
+    </h1>
 
-<h1>Index</h1>
+    <h1 style=" cursor: pointer;" value="0" onclick="isFood(0)">Drink Item</h1>
+</div>
+
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Add New Item</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ItemName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.MenuId)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.ItemName)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Price)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.MenuId)
-                </td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.ItemId">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.ItemId">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ItemId">Delete</a>
-                </td>
-            </tr>
+<div class="container">
+    <div class="row">
 
-
-
-        }
         <div class="card-columns">
             @foreach (var item in Model)
             {
@@ -56,13 +28,155 @@
                         @item.Description
                     </div>
                     <div class="card-footer">
-                        <span class="text-muted">@item.Price VND</span>
-                        <a asp-route="addcart" asp-route-itemid="@item.ItemId"
-                        class="btn btn-primary btn-sm float-right">Đặt hàng</a>
+                        <div style="display: flex; justify-content: space-around;">
+                            <span class="text-muted">Price: @item.Price.Value.ToString("n0") VND</span>
+                            @* <a asp-route="addcart" asp-route-itemid="@item.ItemId"
+                                class="btn btn-primary btn-sm float-right">Chọn</a> *@
+                            <form action="/addcart/@item.ItemId">
+                                <button type="submit" class="btn btn-primary AddToOrder btn-sm " asp-route="addcart"
+                                asp-route-itemid="@item.ItemId" data-itemid="@item.ItemId"
+                                data-id="item-@item.ItemId">Add
+                                    To
+                                    Order</button>
+                                <a href=""></a>
+                            </form>
+                        </div>
                     </div>
                 </div>
             }
 
         </div>
-    </tbody>
-</table>
+        <hr />
+        <div class="container">
+            <div class="row">
+                <table class="table  table-bordered  table-hover">
+                    <thead>
+                        <tr class="table-primary">
+                            <th>
+                                #
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.ItemName)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Description)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Price)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.isFood)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.DiscountPrice)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Status)
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ItemId)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.ItemName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Description)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Price) VND
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.isFood)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.DiscountPrice)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Status)
+                                </td>
+                                <td>
+                                    <a asp-action="Edit" asp-route-id="@item.ItemId" class="btn btn-primary">Edit</a>
+                                    <a asp-action="Details" asp-route-id="@item.ItemId" class="btn btn-primary">Details</a>
+
+                                    <a asp-action="Delete" asp-route-id="@item.ItemId" class="btn btn-danger">Delete</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+
+            </div>
+        </div>
+        @section Scripts {
+
+
+        <script>
+
+
+            $(document).ready(function () {
+                $(".AddToOrder").click(function (event) {
+
+                    let itemid = $(this).attr("data-itemid");
+                    debugger;
+                    @* console.log(itemid); *@
+                        $.ajax({
+                            type: "POST",
+                            url: "@Url.RouteUrl("addcart")",
+                            data: {
+
+                                itemid: itemid,
+
+                            },
+                            success: function (result) {
+                                window.location.href = "@Url.RouteUrl("index")";
+
+                            }
+                        });
+                }
+
+                );
+
+            });
+
+
+            $(document).ready(function () {
+                $(".FoodItem").click(function (event) {
+
+                    let id = $(this).attr("data-itemid");
+                    console.log(id);
+                    debugger;
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.RouteUrl("food/id")",
+                        data: {
+
+                            id: id,
+
+                        },
+                        success: function (result) {
+                            window.location.href = "@Url.RouteUrl("food")";
+
+                        }
+                    });
+                }
+
+                );
+
+            });
+
+
+
+
+        </script>
+
+
+        }
+    </div>

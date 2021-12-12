@@ -1,0 +1,80 @@
+@model IEnumerable<FwB.Models.Item>
+
+@{
+    ViewData["Title"] = "Is Food";
+}
+
+<h1>Menu Item</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add New Item</a>
+</p>
+<div class="container">
+    <div class="row">
+
+        <div class="card-columns">
+            @foreach (var item in Model)
+            {
+                <div class=card>
+                    <h3 class="card-header">@item.ItemName</h3>
+                    <div class="card-body" style="height: 150px;">
+                        @item.Description
+                    </div>
+                    <div class="card-footer">
+                        <div style="display: flex; justify-content: space-around;">
+                            <span class="text-muted">Price: @item.Price.Value.ToString("n0") VND</span>
+                            @* <a asp-route="addcart" asp-route-itemid="@item.ItemId"
+                                class="btn btn-primary btn-sm float-right">Chọn</a> *@
+                            <form action="/addcart/@item.ItemId">
+                                <button type="submit" class="btn btn-primary AddToOrder btn-sm " asp-route="addcart"
+                                asp-route-itemid="@item.ItemId" data-itemid="@item.ItemId"
+                                data-id="item-@item.ItemId">Add
+                                    To
+                                    Order</button>
+                                <a href=""></a>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    @section Scripts {
+
+
+    <script>
+
+
+        $(document).ready(function () {
+            $(".AddToOrder").click(function (event) {
+
+                let itemid = $(this).attr("data-itemid");
+                @* console.log(itemid); *@
+                    $.ajax({
+                        type: "POST",
+                        url: "@Url.RouteUrl("addcart")",
+                        data: {
+
+                            itemid: itemid,
+
+                        },
+                        success: function (result) {
+                            window.location.href = "@Url.RouteUrl("index")";
+
+                        }
+                    });
+            }
+
+            );
+
+        });
+
+    </script>
+
+
+    }
+</div>
